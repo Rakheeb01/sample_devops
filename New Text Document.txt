@@ -23,5 +23,10 @@ Day after tommorow's work
 
 ##---SVN
      Ant
+
 SVN --versioning tool
 Ant/Maven --build tools
+
+Ansible ---automation work
+Docker --- Containerization work
+
