@@ -1,0 +1,4 @@
+[PROD]
+student-prod-app-server
+[DB]
+mariadb-server

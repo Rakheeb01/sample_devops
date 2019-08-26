@@ -1,0 +1,19 @@
+- name : DEMO on find and remove modules
+  hosts : DEV
+  tasks :
+    - name : fnd .log files
+      find :
+        paths : /home/devops
+        patterns : '*.log'
+      register : output
+
+    - name : print the output
+      debug :
+        msg : "{{output}}"
+
+    - name : remove the .log files
+      file :
+        path : "{{item.path}}"
+        state : absent
+      loop :
+        "{{output.files}}"

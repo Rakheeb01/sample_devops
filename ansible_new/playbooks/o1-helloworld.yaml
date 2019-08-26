@@ -1,0 +1,9 @@
+- name : hello world play
+  hosts : DEV
+  tasks :
+    - name : trying hello world
+      debug :
+
+    - name : trying another statement
+      debug :
+        msg : "Hi DevOps"

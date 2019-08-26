@@ -1,0 +1,7 @@
+- name : DEMO on copy modules
+  hosts : DEV
+  tasks :
+    - name : copy a file
+      copy :
+        src : stack.yaml
+        dest : /home/devops/stack.yaml

@@ -1,0 +1,33 @@
+- name : PLAY1
+  hosts : DEV
+  tags :
+    - PLAY1
+  tasks :
+    - name : PLAY1 TASK1
+      tags : 
+        - PLAY1_TASK1
+      debug :
+        msg : "PLAY1 and TASK1"
+
+    - name : PLAY1 TASK2
+      tags :
+        - PLAY1_TASK2
+      debug :
+        msg : "PLAY1 and TASK2"
+
+- name : PLAY2
+  hosts : DEV
+  tags :
+    - PLAY2
+  tasks :
+    - name : PLAY2 TASK1
+      tags :
+        - PLAY2_TASK1
+      debug :
+        msg : "PLAY2 and TASK1"
+
+    - name : PLAY2 and TASK2
+      tags :
+        - always
+      debug :
+        msg : "PLAY2 and TASK2"

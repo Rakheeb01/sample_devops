@@ -1,0 +1,11 @@
+- name : DEMO on advanced loop
+  hosts : DEV
+  become : yes
+  tasks :
+    - name : install gcc and uninstall httpd-devel
+      yum :
+        name : "{{item.name}}"
+        state : "{{item.state}}"
+      loop :
+        - { name : 'gcc', state : 'latest' }
+        - { name : 'httpd-devel', state : 'absent' }

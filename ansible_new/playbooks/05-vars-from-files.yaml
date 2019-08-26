@@ -1,0 +1,8 @@
+- name : DEMO on variables from files
+  hosts : DEV
+  vars_files :
+    - variables.yaml
+  tasks :
+    - name : print narasimha info
+      debug :
+        msg : "NAME = {{NAME}} AGE={{AGE}}"

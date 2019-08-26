@@ -1,0 +1,10 @@
+- name : DEMO on register output
+  hosts : DEV
+  tasks :
+    - name : register the output
+      shell : pwd
+      register : out
+
+    - name : print the variable
+      debug :
+        msg : "{{out}}"

@@ -1,0 +1,21 @@
+- name : DEMO on file exists or not
+  hosts : DEV
+  tasks :
+    - name : check the stats of stack.yaml
+      stat :
+        path : stack.yaml
+      register : st
+
+    - name : print the stats
+      debug :
+        msg : "{{st}}"
+
+    - name : run this if the file exists
+      debug :
+        msg : "file exists"
+      when : st.stat.exists == true
+
+    - name : run this if the file does not exists
+      debug :
+        msg : "file does not exists"
+      when : st.stat.exists == false
