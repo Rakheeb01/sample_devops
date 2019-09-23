@@ -1,8 +1,0 @@
-- name : DEMO on remove the modules
-  hosts : DEV
-  tasks :
-    - name : remove the files
-      #shell : rm -rf /home/devops/sample.txt
-      file :
-        path : /home/devops/sample.txt
-        state : absent

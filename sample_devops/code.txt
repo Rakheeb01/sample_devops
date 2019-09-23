@@ -1,3 +1,0 @@
-hi world!
-Wonderful!!
-<<Git is going good>>

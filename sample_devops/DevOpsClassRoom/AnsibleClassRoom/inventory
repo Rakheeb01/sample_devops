@@ -1,9 +1,0 @@
-[webserver]
-172.31.21.150
-
-[testserver]
-localhost
-
-[ubuntu]
-172.31.21.150
-localhost
