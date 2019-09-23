@@ -1,0 +1,21 @@
+- name : DEMO on ignore errors
+  hosts : DEV
+  tasks :
+    - name : fail this module
+      shell : /bin/true
+      register : out
+      ignore_errors : True
+
+    - name : print the output
+      debug :
+        msg : "{{out}}"
+
+    - name : hello
+      debug :
+        msg : "module failed"
+      when : out.rc == 1
+
+    - name : Hi
+      debug :
+        msg : "module pass"
+      when : out.rc == 0

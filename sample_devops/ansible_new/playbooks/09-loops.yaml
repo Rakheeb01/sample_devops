@@ -1,0 +1,12 @@
+- name : DEMO on loops
+  hosts : DEV
+  tasks :
+    - name : loop the variables
+      debug :
+        msg : "Hi {{item}}"
+      loop :
+        - Vaseem
+        - Satya
+        - Narasimha
+        - Altaf
+        - Suresh

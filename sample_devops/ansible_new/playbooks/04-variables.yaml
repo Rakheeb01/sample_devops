@@ -1,0 +1,12 @@
+- name : DEMO on variables
+  hosts : DEV
+  vars :
+    - NAME : DevOps
+    - DURATION : 45Hr
+  tasks :
+    - name : print the name
+      vars :
+        - NAME : AWS
+        - DURATION : 15Hr
+      debug :
+        msg : "course name = {{NAME}} and duration = {{DURATION}}"

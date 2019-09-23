@@ -1,0 +1,236 @@
+- name : WebServer
+  hosts : DEV
+  tags :
+    - WEB
+  become : yes
+  vars :
+    - MODJK_URL : http://mirrors.estointernet.in/apache/tomcat/tomcat-connectors/jk/tomcat-connectors-1.2.46-src.tar.gz
+  tasks :
+    - name : define MODJK_FILE variable
+      shell : "echo {{MODJK_URL}} | awk -F '/' '{print $NF}'"
+      register : out
+
+    - name : create MODJK_FILE variable
+      set_fact :
+        MODJK_FILE : "{{out.stdout}}"
+
+    - name : define MODJK_FOLDER variable
+      shell : "echo {{MODJK_FILE}} | sed -e 's/.tar.gz//'"
+      register : modjk
+
+    - name : print the MODJK_FILE output
+      debug :
+        msg : "{{out.stdout}}"
+
+    - name : create MODJK_FOLDER variable
+      set_fact :
+        MODJK_FOLDER : "{{modjk.stdout}}"
+
+    - name : Installing HTTPD
+      yum :
+        name : httpd
+        state : latest
+
+    - name : start httpd
+      service :
+        name : httpd
+        state : started
+        enabled : yes
+
+    - name : get the stats of MODJK
+      stat :
+        path : "/root/{{MODJK_FILE}}"
+      register : st
+
+    - name : download mod_jk
+      get_url :
+        url : "{{MODJK_URL}}"
+        dest : /root
+      when : st.stat.exists == false
+
+    - name : get the stats of MODJK_FOLDER
+      stat :
+        path : "/root/{{MODJK_FOLDER}}"
+      register : st1
+
+    - name : extract mod_jk
+      unarchive :
+        src : "/root/{{MODJK_FILE}}"
+        dest : /root
+        remote_src : yes
+      when : st1.stat.exists == false
+
+    - name : install gcc and httpd-devel
+      yum :
+        name : "{{item}}"
+        state : latest
+      loop :
+        - gcc
+        - httpd-devel
+
+    - name : get the stats of modjk.so
+      stat :
+        path : /etc/httpd/modules/mod_jk.so
+      register : modjk_stat
+
+    - name : install modjk
+      shell : ./configure --with-apxs=/bin/apxs && make && make install
+      args :
+        chdir : /root/tomcat-connectors-1.2.46-src/native
+      when : modjk_stat.stat.exists == false
+
+
+    - name : get the stats of modjk.conf
+      stat :
+        path : /etc/httpd/conf.d/modjk.conf
+      register : modjk_conf
+
+
+    - name : copy modjk.conf
+      copy :
+        src : /tmp/modjk.conf
+        dest : /etc/httpd/conf.d/modjk.conf
+      when : modjk_conf.stat.exists == false
+
+    - name : get the stats of workers.properties
+      stat :
+        path : /etc/httpd/conf.d/workers.properties
+      register : workers
+
+
+
+    - name : create workers.properties
+      blockinfile :
+        path : /etc/httpd/conf.d/workers.properties
+        block : |
+          ### Define workers
+          worker.list=tomcatA
+          ### Set properties
+          worker.tomcatA.type=ajp13
+          worker.tomcatA.host=localhost
+          worker.tomcatA.port=8009
+        create : yes
+      when : workers.stat.exists == false
+
+    - name : restart httpd
+      service :
+        name : httpd
+        state : restarted
+
+- name : app-server
+  hosts : DEV
+  tags :
+    - APP
+  become : yes
+  vars :
+    - USERNAME : tomcat
+    - TOMCAT_DIR : /tomcat
+    - STUDENT_WAR : https://github.com/devops2k18/DevOpsDecember/raw/master/APPSTACK/student.war
+    - MYSQL_CONNECTOR : https://github.com/devops2k18/DevOpsDecember/raw/master/APPSTACK/mysql-connector-java-5.1.40.jar
+  tasks :
+    - name : install java
+      yum :
+        name : java
+        state : latest
+
+    - name : create a user for tomcat
+      user :
+        name : "{{USERNAME}}"
+
+    - name : create a directory for tomcat
+      file :
+        path : "{{TOMCAT_DIR}}"
+        owner : "{{USERNAME}}"
+        group : "{{USERNAME}}"
+        mode : 0755
+        state : directory
+
+    - name : download  and extract tomcat
+      unarchive :
+        src : https://www-us.apache.org/dist/tomcat/tomcat-9/v9.0.19/bin/apache-tomcat-9.0.19.tar.gz
+        dest : "{{TOMCAT_DIR}}"
+        remote_src : yes
+      become_user : "{{USERNAME}}"
+
+    - name : find all files from webapps directory
+      find :
+        paths : "{{TOMCAT_DIR}}/apache-tomcat-9.0.19/webapps"
+        file_type : any
+      register : findout
+
+    - name : remove all files
+      file :
+        path : "{{item.path}}"
+        state : absent
+      loop :
+        "{{findout.files}}"
+
+    - name : download student.war
+      get_url :
+        url : "{{item.URL}}"
+        dest : "{{item.dest}}"
+      loop :
+        - { URL : "{{STUDENT_WAR}}", dest: "{{TOMCAT_DIR}}/apache-tomcat-9.0.19/webapps"}
+        - { URL : "{{MYSQL_CONNECTOR}}", dest : "{{TOMCAT_DIR}}/apache-tomcat-9.0.19/lib"}
+      become_user : "{{USERNAME}}"
+
+    - name : edit context.xml
+      blockinfile :
+        path : "{{TOMCAT_DIR}}/apache-tomcat-9.0.19/conf/context.xml"
+        block : |
+          <Resource name="jdbc/TestDB" auth="Container" type="javax.sql.DataSource" maxTotal="100" maxIdle="30" maxWaitMillis="10000" username="student" password="student@1" driverClassName="com.mysql.jdbc.Driver" url="jdbc:mysql://localhost:3306/studentapp"/>
+        insertbefore : "</Context>"
+        
+    - name : check the running status of tomcat
+      shell : ps -ef | grep tomcat | grep -v grep
+      register : output
+      ignore_errors : True
+
+    - name : restart tomcat
+      shell : nohup sh shutdown.sh && nohup sh startup.sh
+      args :
+        chdir : "{{TOMCAT_DIR}}/apache-tomcat-9.0.19/bin"
+      when : output.rc == 0
+
+    - name : start the app-server
+      shell : nohup sh startup.sh
+      args :
+        chdir : "{{TOMCAT_DIR}}/apache-tomcat-9.0.19/bin"
+      when : output.rc != 0
+
+- name : Db-server
+  hosts : DEV
+  become : yes
+  tags :
+    - DB
+  tasks :
+    - name : install mariadb and mariadb-server
+      yum :
+        name : "{{item}}"
+        state : latest
+      loop :
+        - mariadb
+        - mariadb-server
+        - MySQL-python
+
+    - name : run mariadb-server
+      service :
+        name : "mariadb"
+        state : started
+        enabled : yes
+
+    - name : copy studentapp.sql
+      copy :
+        src : studentapp.sql
+        dest : /tmp/studentapp.sql
+
+    - name : run mariadb script
+      mysql_db :
+        state : import
+        name : all
+        target : /tmp/studentapp.sql
+
+
+
+
+

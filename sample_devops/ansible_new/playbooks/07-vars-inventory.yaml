@@ -1,0 +1,6 @@
+- name : print variables from inventory
+  hosts : DEV
+  tasks :
+    - name : print the variables
+      debug :
+        msg : "name = {{NAME}} age = {{AGE}}"

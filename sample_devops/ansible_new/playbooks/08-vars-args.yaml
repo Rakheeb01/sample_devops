@@ -1,0 +1,9 @@
+- name : DEMO on variables from command line
+  hosts : DEV
+  tasks :
+    - name : print variables from command line
+      vars :
+        - NAME : Altaf
+        - AGE : 22
+      debug :
+        msg : "name = {{NAME}} age = {{AGE}}"

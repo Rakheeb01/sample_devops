@@ -1,0 +1,11 @@
+- name : DEMO on directory exists
+  hosts : DEV
+  tasks :
+    - name : check the directory exists or not
+      stat :
+        path : /home/devops
+      register : st
+
+    - name : print the stats
+      debug :
+        msg : "{{st}}"
