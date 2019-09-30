@@ -4,15 +4,15 @@ pipeline {
     }
     tools {
         // Note: this should match with the tool name configured in your jenkins instance (JENKINS_URL/configureTools/)
-        maven "Maven3"
+        maven "mvn"
     }
     environment {
         // This can be nexus3 or nexus2
-        NEXUS_VERSION = "nexus3"
+        NEXUS_VERSION = "nexus2"
         // This can be http or https
         NEXUS_PROTOCOL = "http"
         // Where your Nexus is running
-        NEXUS_URL = "localhost:8081"
+        NEXUS_URL = "localhost:8085"
         // Repository where we will upload the artifact
         NEXUS_REPOSITORY = "dvs-evn-spring"
         // Jenkins credential id to authenticate to Nexus OSS
